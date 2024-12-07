@@ -36,20 +36,26 @@ sf::Color Particle::getColor(float value, sf::Color &left, sf::Color &right) {
 
 void Particle::show(sf::RenderWindow &window, float minVel, float maxVel) {
   float midVel = (minVel + maxVel) / 2.0;
-  sf::Color left = sf::Color::Blue;
-  sf::Color middle = sf::Color::Red;
-  sf::Color right = sf::Color::Green;
+  sf::Color left = sf::Color(42, 110, 187);
+  sf::Color middle = sf::Color(122, 59, 160);
+  sf::Color right = sf::Color(197, 63, 63);
+  std::vector<sf::Color> colors = {left, middle, right};
+
   float normVel = norm(vel);
   sf::Color newColor;
-  if (normVel < minVel + midVel) {
+
+  newColor = multiColourLerp(colors, normVel / maxVel);
+
+  if (normVel < midVel) {
     newColor = getColor((normVel - minVel) / midVel, left, middle);
   } else {
     newColor = getColor((normVel - minVel - midVel) / midVel, middle, right);
   }
 
   // sf::RectangleShape point(sf::Vector2f(1.0, 1.0));
-  sf::CircleShape point(0.5);
+  sf::CircleShape point(1.0);
   point.setPosition(pos);
+  point.setFillColor(left);
   point.setFillColor(newColor);
   window.draw(point);
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "particle.hpp"
 #include <SFML/Graphics.hpp>
 class Rectangle {
