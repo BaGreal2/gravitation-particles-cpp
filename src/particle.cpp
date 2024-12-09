@@ -1,6 +1,6 @@
-#include "../include/particle.hpp"
-#include "../include/defines.hpp"
-#include "../include/utils.hpp"
+#include "particle.hpp"
+#include "defines.hpp"
+#include "utils.hpp"
 #include <SFML/Graphics.hpp>
 
 Particle::Particle(sf::Vector2f _pos, sf::Vector2f _vel, float _mass,
@@ -13,7 +13,7 @@ Particle::Particle(sf::Vector2f _pos, sf::Vector2f _vel, float _mass,
   index = _index;
 }
 
-sf::Vector2f Particle::getAttractionForce(const Particle *anotherParticle) {
+sf::Vector2f Particle::get_attraction_force(const Particle *anotherParticle) {
   float r = std::sqrt(std::pow(distance(pos, anotherParticle->pos), 2) +
                       std::pow(SOFTENING, 2));
   sf::Vector2f dir = normalize(anotherParticle->pos - pos);
@@ -23,11 +23,11 @@ sf::Vector2f Particle::getAttractionForce(const Particle *anotherParticle) {
   return force;
 }
 
-float Particle::getDistanceTo(sf::Vector2f object) {
+float Particle::get_distance_to(sf::Vector2f object) {
   return hypot(object.x - pos.x, object.y - pos.y);
 }
 
-sf::Color Particle::getColor(float value, sf::Color &left, sf::Color &right) {
+sf::Color Particle::get_color(float value, sf::Color &left, sf::Color &right) {
   sf::Color color(((1.0 - value) * left.r + value * right.r),
                   ((1.0 - value) * left.g + value * right.g),
                   ((1.0 - value) * left.b + value * right.b));
@@ -44,16 +44,16 @@ void Particle::show(sf::RenderWindow &window, float minVel, float maxVel) {
   float normVel = norm(vel);
   sf::Color newColor;
 
-  newColor = multiColourLerp(colors, normVel / maxVel);
+  newColor = multi_color_lerp(colors, normVel / maxVel);
 
   if (normVel < midVel) {
-    newColor = getColor((normVel - minVel) / midVel, left, middle);
+    newColor = get_color((normVel - minVel) / midVel, left, middle);
   } else {
-    newColor = getColor((normVel - minVel - midVel) / midVel, middle, right);
+    newColor = get_color((normVel - minVel - midVel) / midVel, middle, right);
   }
 
   // sf::RectangleShape point(sf::Vector2f(1.0, 1.0));
-  sf::CircleShape point(1.0);
+  sf::CircleShape point(PARTICLE_RADIUS);
   point.setPosition(pos);
   point.setFillColor(left);
   point.setFillColor(newColor);

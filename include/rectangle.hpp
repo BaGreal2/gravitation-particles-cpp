@@ -2,12 +2,13 @@
 
 #include "particle.hpp"
 #include <SFML/Graphics.hpp>
+
 class Rectangle {
 public:
-  sf::Vector2f topLeftPos;
+  sf::Vector2f top_left_pos;
   float w, h;
 
-  Rectangle(sf::Vector2f _topLeftPos, float _w, float _h);
+  Rectangle(sf::Vector2f _top_left_pos, float _w, float _h);
 
   bool contains(Particle &particle);
 

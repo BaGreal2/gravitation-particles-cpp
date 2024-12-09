@@ -1,5 +1,5 @@
-#include "../include/utils.hpp"
-#include "../include/defines.hpp"
+#include "utils.hpp"
+#include "defines.hpp"
 #include <cmath>
 #include <random>
 #include <algorithm>
@@ -27,7 +27,7 @@ sf::Vector2f normalize(const sf::Vector2f &vector) {
   }
 }
 
-sf::Vector2f randomInCircle(float radius, float padding, sf::Vector2f center) {
+sf::Vector2f random_in_circle(float radius, float padding, sf::Vector2f center) {
   std::random_device rd;
   float angle = std::generate_canonical<float, 10>(rd) * 2.0 * M_PI;
   float distance =
@@ -37,14 +37,14 @@ sf::Vector2f randomInCircle(float radius, float padding, sf::Vector2f center) {
          center;
 }
 
-sf::Vector2f randomOnScreen() {
+sf::Vector2f random_on_screen() {
   std::random_device rd;
   float x = std::generate_canonical<float, 10>(rd) * WIDTH;
   float y = std::generate_canonical<float, 10>(rd) * HEIGHT;
   return sf::Vector2f(x, y);
 }
 
-sf::Vector2f randomSpeed() {
+sf::Vector2f random_speed() {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<float> distribution(-0.45f, 0.45f);
@@ -64,18 +64,18 @@ sf::Color operator*(const sf::Color& color, float scalar) {
     );
 }
 
-sf::Color multiColourLerp(vector<sf::Color>& colors, float t) {
-  float clampedT = std::clamp(t, 0.0f, 1.0f);
+sf::Color multi_color_lerp(vector<sf::Color>& colors, float t) {
+  float clamped_t = std::clamp(t, 0.0f, 1.0f);
 
   float delta = 1.0f / (colors.size() - 1);
-  int startIndex = (int)(clampedT / delta);
+  int start_index = (int)(clamped_t / delta);
 
-  if (startIndex == colors.size() - 1) {
+  if (start_index == colors.size() - 1) {
     return colors[colors.size() - 1];
   }
 
-  float localT = fmod(clampedT, delta) / delta;
+  float local_t = fmod(clamped_t, delta) / delta;
 
-  return (colors[startIndex] * (1.0f - localT)) +
-         (colors[startIndex + 1] * localT);
+  return (colors[start_index] * (1.0f - local_t)) +
+         (colors[start_index + 1] * local_t);
 }

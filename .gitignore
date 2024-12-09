@@ -3,4 +3,5 @@ results/
 **/.DS_Store
 .vscode/
 image-cache/
-main
+bin/
+obj/
