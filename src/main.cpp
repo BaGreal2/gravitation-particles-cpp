@@ -41,16 +41,6 @@ void spawnSpinningCircle(vector<Particle> &particles, Vector2f center,
   }
 }
 
-void fillScreen(vector<Particle> &particles, float particleMass,
-                float particlesAmount) {
-  for (int i = 0; i < particlesAmount; i++) {
-    Vector2f pos = randomOnScreen();
-    Vector2f speed = randomSpeed();
-    Particle newParticle(pos, speed, particleMass, 0.00001, i);
-    particles.push_back(newParticle);
-  }
-}
-
 void spawnGalaxy(vector<Particle> &particles, Vector2f center,
                  Vector2f initialVel, float radius, float sunMass,
                  float particleMass, float particlesAmount) {
@@ -67,14 +57,18 @@ void spawnGalaxy(vector<Particle> &particles, Vector2f center,
   particles.push_back(sun);
 }
 
-void createQuadTree(vector<Particle> &particles,
-                    vector<QuadTree> &qts, QuadTree &qt) {
-  for (int i = 0; i < particles.size(); i++) {
-    qt.insert(&particles[i], qts);
+void fillScreen(vector<Particle> &particles, float particleMass,
+                float particlesAmount) {
+  for (int i = 0; i < particlesAmount; i++) {
+    Vector2f pos = randomOnScreen();
+    Vector2f speed = randomSpeed();
+    Particle newParticle(pos, speed, particleMass, 0.00001, i);
+    particles.push_back(newParticle);
   }
 }
 
-void calculateNewPosition(Particle &particle, QuadTree &qt) {
+
+void calcNewPos(Particle &particle, QuadTree &qt) {
   particle.netForce = Vector2f(0.0, 0.0);
   qt.calculateForce(particle);
 
@@ -83,7 +77,7 @@ void calculateNewPosition(Particle &particle, QuadTree &qt) {
   particle.pos += particle.vel;
 }
 
-void calculateMinMaxAvgVelocities(float &minVelAvg, float &maxVelAvg,
+void calcAvgVel(float &minVelAvg, float &maxVelAvg,
                                   vector<Particle> particles,
                                   int frameCount) {
   float maxVel = norm(particles[0].vel);
@@ -102,6 +96,13 @@ void calculateMinMaxAvgVelocities(float &minVelAvg, float &maxVelAvg,
       (maxVelAvg * (float)frameCount + maxVel) / ((float)frameCount + 1.0);
   minVelAvg =
       (minVelAvg * (float)frameCount + minVel) / ((float)frameCount + 1.0);
+}
+
+void createQuadTree(vector<Particle> &particles,
+                    vector<QuadTree> &qts, QuadTree &qt) {
+  for (int i = 0; i < particles.size(); i++) {
+    qt.insert(&particles[i], qts);
+  }
 }
 
 void updateTitle(Clock &clock, Time &elapsed, RenderWindow &window,
@@ -151,43 +152,39 @@ void saveScreen(RenderWindow &window, int &frameCount) {
     framesStr = string(numZeros, '0') + framesStr;
   }
   if (texture.copyToImage().saveToFile("image-cache/" + framesStr + ".png")) {
-    std::cout << "Screenshot saved " + to_string(frameCount) << "\n";
+    std::cout << "[LOG] Screenshot #" + to_string(frameCount) << " saved.\n";
   } else {
-    std::cout << "Failed\n";
+    std::cout << "[ERROR] Failed to save a screenshot.\n";
   }
 }
 
 int main() {
   RenderWindow window(sf::VideoMode(WIDTH, HEIGHT),
                           "Gravitation Particles");
+
   fs::path cachePath("image-cache");
   if (!fs::create_directory(cachePath)) {
-    std::cout << "Cache folder already exists!\n";
+    std::cout << "[LOG] Cache folder already exists.\n";
   }
   fs::path resultsPath("results");
   if (!fs::create_directory(resultsPath)) {
-    std::cout << "Results folder already exists!\n";
+    std::cout << "[LOG] Results folder already exists.\n";
   }
-  Clock clock;
-  int frameCountForSecond = 0;
-  Time elapsed;
+
   vector<Particle> particles;
-  // fillScreen(particles, 3.0, PARTICLES_AMOUNT);
   spawnGalaxy(particles,
-              Vector2f(WIDTH / 2.0 - 110.0, HEIGHT / 2.0 - 110.0),
-              Vector2f(0.3, 0.0), 120.0, 1000.0, 1.0, PARTICLES_AMOUNT);
-  // spawnGalaxy(particles,
-  //             Vector2f(WIDTH / 2.0 + 110.0, HEIGHT / 2.0 + 110.0),
-  //             Vector2f(-0.3, 0.1), 120.0, 1000.0, 1.0, PARTICLES_AMOUNT);
-  auto compareByMass = [](const Particle &a, const Particle &b) {
-    return a.mass < b.mass;
-  };
-  std::sort(particles.begin(), particles.end(), compareByMass);
+              Vector2f(WIDTH / 2.0, HEIGHT / 2.0),
+              Vector2f(0.0, 0.0), 120.0, 1000.0, 1.0, PARTICLES_AMOUNT);
 
   float minVelAvg = 0.0;
   float maxVelAvg = 0.0;
+
+  Clock clock;
+  int frameCountForSecond = 0;
+  Time elapsed;
   int frameCount = 0;
   bool recording = RECORD_FROM_START;
+
   string ffmpegCommand =
       "ffmpeg -framerate 60 -pattern_type glob -i \"image-cache/*.png\" -vf "
       "eq=saturation=2 -c:v libx264 -pix_fmt yuv420p results/";
@@ -210,12 +207,12 @@ int main() {
     createQuadTree(particles, qts, qt);
 
     for (int i = 0; i < particles.size(); i++) {
-      calculateNewPosition(particles[i], qt);
+      calcNewPos(particles[i], qt);
     }
 
-    calculateMinMaxAvgVelocities(minVelAvg, maxVelAvg, particles, frameCount);
+    calcAvgVel(minVelAvg, maxVelAvg, particles, frameCount);
 
-    qt.show(window, false, minVelAvg, maxVelAvg);
+    qt.show(window, true, minVelAvg, maxVelAvg);
 
     window.display();
     frameCountForSecond++;
