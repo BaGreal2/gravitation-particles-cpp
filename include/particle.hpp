@@ -8,6 +8,7 @@ public:
   float mass, radius;
   int index;
 
+  Particle();
   Particle(sf::Vector2f _pos, sf::Vector2f _vel, float _mass, float _radius,
            int _index);
   sf::Vector2f get_attraction_force(const Particle *anotherParticle);

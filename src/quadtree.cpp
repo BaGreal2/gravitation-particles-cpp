@@ -1,5 +1,6 @@
 #include "quadtree.hpp"
 #include "defines.hpp"
+#include <thread>
 
 using std::vector, sf::Vector2f, sf::RenderWindow;
 
@@ -41,6 +42,7 @@ void QuadTree::calc_force(Particle &another_particle) {
 }
 
 void QuadTree::insert(Particle &new_particle) {
+  std::lock_guard<std::recursive_mutex> lock(mtx);
   if (!bounds.contains(new_particle)) {
     return;
   }
@@ -133,10 +135,10 @@ void QuadTree::subdivide() {
   Rectangle bottomleft(Vector2f(x, y + h / 2.0), w / 2.0, h / 2.0);
   Rectangle bottomright(Vector2f(x + w / 2.0, y + h / 2.0), w / 2.0, h / 2.0);
 
-  children[0] = std::make_shared<QuadTree>(QuadTree(topleft));
-  children[1] = std::make_shared<QuadTree>(QuadTree(topright));
-  children[2] = std::make_shared<QuadTree>(QuadTree(bottomleft));
-  children[3] = std::make_shared<QuadTree>(QuadTree(bottomright));
+  children[0] = std::make_shared<QuadTree>(topleft);
+  children[1] = std::make_shared<QuadTree>(topright);
+  children[2] = std::make_shared<QuadTree>(bottomleft);
+  children[3] = std::make_shared<QuadTree>(bottomright);
 }
 
 void QuadTree::update_mass() {

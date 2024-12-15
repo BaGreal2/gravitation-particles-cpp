@@ -12,3 +12,5 @@
 
 #define RECORD_FROM_START false
 #define SHOW_BOUNDS false
+
+#define THREADS_AMOUNT 8

@@ -3,6 +3,15 @@
 #include "utils.hpp"
 #include <SFML/Graphics.hpp>
 
+Particle::Particle() {
+  pos = sf::Vector2f(0.0, 0.0);
+  vel = sf::Vector2f(0.0, 0.0);
+  netForce = sf::Vector2f(0.0, 0.0);
+  mass = 0.0;
+  radius = 0.0;
+  index = 0;
+}
+
 Particle::Particle(sf::Vector2f _pos, sf::Vector2f _vel, float _mass,
                    float _radius, int _index) {
   pos = _pos;

@@ -10,6 +10,7 @@ public:
   std::shared_ptr<Particle> particle;
   float mass;
   sf::Vector2f m_center_pos;
+  std::recursive_mutex mtx;
 
   QuadTree(Rectangle &_bounds);
   void calc_force(Particle &calculationParticle);

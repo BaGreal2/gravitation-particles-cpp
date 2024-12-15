@@ -11,15 +11,46 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <filesystem>
+#include <future>
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace fs = std::filesystem;
 
 using std::vector, std::string, std::time_t, sf::Vector2f, sf::RenderWindow,
     sf::Clock, sf::Time;
+
+// void insert_particles(QuadTree &qt, std::vector<Particle> &particles,
+//                       size_t start, size_t end) {
+//   for (size_t i = start; i < end; ++i) {
+//     qt.insert(particles[i]);
+//   }
+// }
+
+std::queue<Particle> work_queue;
+std::mutex queue_mutex;
+std::condition_variable cv;
+bool work_done = false;
+
+void worker(QuadTree &qt) {
+  while (true) {
+    Particle particle;
+    {
+      std::unique_lock<std::mutex> lock(queue_mutex);
+      cv.wait(lock, [&]() { return !work_queue.empty() || work_done; });
+      if (work_queue.empty() && work_done)
+        return;
+
+      particle = work_queue.front();
+      work_queue.pop();
+    }
+    qt.insert(particle);
+  }
+}
 
 int main() {
   RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "GraviPar");
@@ -75,8 +106,59 @@ int main() {
     Rectangle bounds(Vector2f(0.0, 0.0), WIDTH, HEIGHT);
     QuadTree qt(bounds);
 
-    for (int i = 0; i < particles.size(); i++) {
-      qt.insert(particles[i]);
+    // for (int i = 0; i < particles.size(); i++) {
+    //   qt.insert(particles[i]);
+    // }
+
+    // size_t chunk_size =
+    //     (particles.size() + THREADS_AMOUNT - 1) / THREADS_AMOUNT;
+    //
+    // vector<std::thread> threads;
+    //
+    // for (int i = 0; i < particles.size(); i++) {
+    //   qt.insert(particles[i]);
+    // }
+    //
+    // for (unsigned int i = 0; i < THREADS_AMOUNT; ++i) {
+    //   size_t start = i * chunk_size;
+    //   size_t end = std::min(start + chunk_size, particles.size());
+    //   if (start >= end)
+    //     break;
+    //   threads.emplace_back(insert_particles, std::ref(qt),
+    //   std::ref(particles),
+    //                        start, end);
+    // }
+    //
+    // for (auto &t : threads) {
+    //   t.join();
+    // }
+
+    std::queue<Particle> work_queue;
+    std::mutex queue_mutex;
+
+    for (auto &particle : particles) {
+      work_queue.push(particle);
+    }
+
+    std::vector<std::future<void>> futures;
+    for (unsigned int i = 0; i < THREADS_AMOUNT; ++i) {
+      futures.emplace_back(std::async(std::launch::async, [&]() {
+        while (true) {
+          Particle particle;
+          {
+            // std::lock_guard<std::mutex> lock(queue_mutex);
+            if (work_queue.empty())
+              break;
+            particle = work_queue.front();
+            work_queue.pop();
+          }
+          qt.insert(particle);
+        }
+      }));
+    }
+
+    for (auto &f : futures) {
+      f.get();
     }
 
     for (int i = 0; i < particles.size(); i++) {
