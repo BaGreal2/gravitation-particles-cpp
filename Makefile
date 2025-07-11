@@ -1,7 +1,9 @@
 CXX = g++
 CXXFLAGS = -O3 -ffunction-sections -fdata-sections -flto -march=native -std=c++20 \
-           -I./include -I/opt/homebrew/Cellar/sfml/2.6.1/include \
-					 -lsfml-graphics -lsfml-window -lsfml-system -L/opt/homebrew/Cellar/sfml/2.6.1/lib
+           -I./include -I/usr/include  \
+					 -L/usr/lib -lsfml-graphics -lsfml-window -lsfml-system
+
+CXXFLAGS += -g -fsanitize=address
 
 SRC_DIR = src
 OBJ_DIR = obj

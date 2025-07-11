@@ -1,6 +1,7 @@
 #include "spawns.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
+#include <cmath>
 
 void spawn_circle(vector<Particle> &particles, Vector2f center) {
   for (int i = 0; i < PARTICLES_AMOUNT; i++) {

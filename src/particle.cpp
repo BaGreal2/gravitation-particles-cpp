@@ -2,6 +2,7 @@
 #include "defines.hpp"
 #include "utils.hpp"
 #include <SFML/Graphics.hpp>
+#include <cmath>
 
 Particle::Particle() {
   pos = sf::Vector2f(0.0, 0.0);

@@ -1,22 +1,17 @@
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Window/Keyboard.hpp"
-#include "SFML/Window/Window.hpp"
 #include "defines.hpp"
 #include "helpers.hpp"
 #include "quadtree.hpp"
 #include "rectangle.hpp"
 #include "spawns.hpp"
-#include "utils.hpp"
 #include <SFML/Graphics.hpp>
-#include <cmath>
 #include <filesystem>
 #include <future>
 #include <iostream>
-#include <memory>
 #include <queue>
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -53,7 +48,7 @@ void worker(QuadTree &qt) {
 }
 
 int main() {
-  RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "GraviPar");
+  RenderWindow window(sf::VideoMode(sf::Vector2u(WIDTH, HEIGHT)), "GraviPar");
 
   fs::path cache_path("image-cache");
   if (!fs::create_directory(cache_path)) {
@@ -82,16 +77,16 @@ int main() {
       "eq=saturation=2 -c:v libx264 -pix_fmt yuv420p results/";
 
   while (window.isOpen()) {
-    sf::Event event;
-    while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed)
-        window.close();
+    while (auto eventOpt = window.pollEvent()) {
+      const auto &event = *eventOpt;
 
-      if (event.type == sf::Event::KeyPressed) {
-        if (event.key.code == sf::Keyboard::R) {
+      if (event.is<sf::Event::Closed>()) {
+        window.close();
+      } else if (auto key = event.getIf<sf::Event::KeyPressed>()) {
+        if (key->scancode == sf::Keyboard::Scancode::R) {
           recording = true;
           std::cout << "[LOG] Recording started.\n";
-        } else if (event.key.code == sf::Keyboard::S) {
+        } else if (key->scancode == sf::Keyboard::Scancode::S) {
           recording = false;
           std::cout << "[LOG] Recording stopped.\n";
           save_video(ffmpeg_command);
@@ -147,10 +142,17 @@ int main() {
           Particle particle;
           {
             // std::lock_guard<std::mutex> lock(queue_mutex);
-            if (work_queue.empty())
-              break;
-            particle = work_queue.front();
-            work_queue.pop();
+            // if (work_queue.empty())
+            //   break;
+            // particle = work_queue.front();
+            // work_queue.pop();
+            {
+              std::lock_guard<std::mutex> guard(queue_mutex);
+              if (work_queue.empty())
+                break;
+              particle = std::move(work_queue.front());
+              work_queue.pop();
+            }
           }
           qt.insert(particle);
         }

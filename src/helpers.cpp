@@ -1,5 +1,3 @@
-#pragma once
-
 #include "helpers.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "utils.hpp"
@@ -79,7 +77,8 @@ void save_video(string &ffmpeg_command) {
 
 void save_screen(RenderWindow &window, int &frame_cnt) {
   Texture texture;
-  texture.create(window.getSize().x, window.getSize().y);
+  texture.resize(
+      sf::Vector2<unsigned int>(window.getSize().x, window.getSize().y));
   texture.update(window);
 
   int desiredWidth = 5;

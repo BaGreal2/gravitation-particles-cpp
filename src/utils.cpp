@@ -1,8 +1,11 @@
 #include "utils.hpp"
 #include "defines.hpp"
-#include <cmath>
-#include <random>
+#include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <random>
 #include <vector>
 
 using std::vector, std::fmod;
@@ -27,7 +30,8 @@ sf::Vector2f normalize(const sf::Vector2f &vector) {
   }
 }
 
-sf::Vector2f random_in_circle(float radius, float padding, sf::Vector2f center) {
+sf::Vector2f random_in_circle(float radius, float padding,
+                              sf::Vector2f center) {
   std::random_device rd;
   float angle = std::generate_canonical<float, 10>(rd) * 2.0 * M_PI;
   float distance =
@@ -55,16 +59,14 @@ sf::Vector2f random_speed() {
   return sf::Vector2f(x, y);
 }
 
-sf::Color operator*(const sf::Color& color, float scalar) {
-    return sf::Color(
-        static_cast<sf::Uint8>(color.r * scalar),
-        static_cast<sf::Uint8>(color.g * scalar),
-        static_cast<sf::Uint8>(color.b * scalar),
-        static_cast<sf::Uint8>(color.a * scalar)
-    );
+sf::Color operator*(const sf::Color &color, float scalar) {
+  return sf::Color(static_cast<std::uint8_t>(color.r * scalar),
+                   static_cast<std::uint8_t>(color.g * scalar),
+                   static_cast<std::uint8_t>(color.b * scalar),
+                   static_cast<std::uint8_t>(color.a * scalar));
 }
 
-sf::Color multi_color_lerp(vector<sf::Color>& colors, float t) {
+sf::Color multi_color_lerp(vector<sf::Color> &colors, float t) {
   float clamped_t = std::clamp(t, 0.0f, 1.0f);
 
   float delta = 1.0f / (colors.size() - 1);

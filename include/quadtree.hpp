@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rectangle.hpp"
+#include <mutex>
 #include <SFML/Graphics.hpp>
 
 class QuadTree {
